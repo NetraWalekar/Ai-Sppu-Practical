@@ -5,44 +5,71 @@
 
 using namespace std;
 
-#define INF numeric_limits<int>::max()
+const int INF = numeric_limits<int>::max(); // Represents infinity
 
-typedef pair<int, int> pii;
+// Define a structure to represent an edge in the graph
+struct Edge {
+    int to;
+    int weight;
 
-void greedy_shortest_path(vector<vector<pii>>& graph, int start) {
-    priority_queue<pii, vector<pii>, greater<pii>> pq;
-    vector<int> distances(graph.size(), INF);
+    Edge(int to, int weight) : to(to), weight(weight) {}
+};
 
-    distances[start] = 0;
-    pq.push({0, start});
+// Function to find the shortest path from a source vertex to all other vertices using Dijkstra's algorithm
+vector<int> dijkstra(const vector<vector<Edge>>& graph, int source) {
+    int V = graph.size(); // Number of vertices
+    vector<int> dist(V, INF); // Tracks shortest distance from source
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+
+    dist[source] = 0;
+    pq.push({0, source});
 
     while (!pq.empty()) {
-        int u = pq.top().second, d = pq.top().first;
+        int u = pq.top().second;
+        int d = pq.top().first;
         pq.pop();
 
-        if (d > distances[u]) continue;
+        if (d > dist[u]) continue;
 
-        for (auto& [v, w] : graph[u])
-            if (distances[u] + w < distances[v])
-                pq.push({distances[v] = distances[u] + w, v});
+        for (const Edge& edge : graph[u]) {
+            int v = edge.to;
+            int weight = edge.weight;
+
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                pq.push({dist[v], v});
+            }
+        }
     }
 
-    for (int i = 0; i < graph.size(); ++i)
-        cout << "Shortest distance from node " << start << " to node " << i << ": " << (distances[i] == INF ? "INF" : to_string(distances[i])) << endl;
+    return dist;
 }
 
 int main() {
-    int n, m;
-    cin >> n >> m;
-    vector<vector<pii>> graph(n);
+    int V = 5; // Number of vertices
+    vector<vector<Edge>> graph(V); // Adjacency list representation of the graph
 
-    for (int i = 0, u, v, w; i < m && cin >> u >> v >> w; ++i) {
-        graph[u].emplace_back(v, w);
-        graph[v].emplace_back(u, w); // For undirected graph
+    // Add edges to the graph
+    graph[0].emplace_back(1, 10);
+    graph[0].emplace_back(2, 5);
+    graph[1].emplace_back(2, 2);
+    graph[1].emplace_back(3, 1);
+    graph[2].emplace_back(1, 3);
+    graph[2].emplace_back(3, 9);
+    graph[2].emplace_back(4, 2);
+    graph[3].emplace_back(4, 4);
+    graph[4].emplace_back(0, 7);
+    graph[4].emplace_back(3, 6);
+
+    int source = 0; // Source vertex
+
+    vector<int> shortest_distances = dijkstra(graph, source);
+
+    // Print shortest distances from source
+    cout << "Shortest distances from source vertex " << source << ":\n";
+    for (int i = 0; i < V; ++i) {
+        cout << "Vertex " << i << ": " << shortest_distances[i] << endl;
     }
 
-    int start;
-    cin >> start;
-    greedy_shortest_path(graph, start);
     return 0;
 }
