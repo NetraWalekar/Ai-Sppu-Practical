@@ -1,31 +1,70 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <limits>
+
 using namespace std;
-vector<vector<pair<int, int>>> g;
-int prim(int s, int n) {
-    int t = 0;
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> q;
-    vector<bool> v(n);
-    q.push({0, s});
-    while (!q.empty()) {
-        auto [w, u] = q.top();
-        q.pop();
-        if (v[u]) continue;
-        v[u] = true; t += w;
-        for (auto& [v, w] : g[u]) {
-            if (!v[u]) q.push({w, v});
+
+const int INF = numeric_limits<int>::max(); // Represents infinity
+
+struct Edge {
+    int to;
+    int weight;
+
+    Edge(int to, int weight) : to(to), weight(weight) {}
+};
+
+void primMST(const vector<vector<Edge>>& graph, int start) {
+    int V = graph.size(); // Number of vertices
+    vector<bool> visited(V, false); // Tracks visited vertices
+    vector<int> minDist(V, INF); // Tracks minimum distance to each vertex
+    vector<int> parent(V, -1); // Tracks parent of each vertex in MST
+
+    minDist[start] = 0;
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+    pq.push({0, start});
+
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        pq.pop();
+        visited[u] = true;
+
+        for (const Edge& edge : graph[u]) {
+            int v = edge.to;
+            int weight = edge.weight;
+
+            if (!visited[v] && weight < minDist[v]) {
+                parent[v] = u;
+                minDist[v] = weight;
+                pq.push({minDist[v], v});
+            }
         }
     }
-    return t;
+
+    cout << "Minimal Spanning Tree Edges:" << endl;
+    for (int i = 1; i < V; ++i) {
+        cout << parent[i] << " - " << i << endl;
+    }
 }
 
 int main() {
-    int n, m;
-    cin >> n >> m;
-    g.resize(n);
-    for (int u, v, w; m--; g[u].push_back({v, w}), g[v].push_back({u, w}))
-        cin >> u >> v >> w;
-    cout << prim(0, n) << endl;
+    int V = 5; // Number of vertices
+    vector<vector<Edge>> graph(V); // Adjacency list representation of the 
+
+    graph[0].emplace_back(1, 2);
+    graph[0].emplace_back(3, 6);
+    graph[1].emplace_back(0, 2);
+    graph[1].emplace_back(3, 8);
+    graph[1].emplace_back(2, 3);
+    graph[2].emplace_back(1, 3);
+    graph[2].emplace_back(4, 5);
+    graph[3].emplace_back(0, 6);
+    graph[3].emplace_back(1, 8);
+    graph[3].emplace_back(4, 9);
+    graph[4].emplace_back(2, 5);
+    graph[4].emplace_back(3, 9);
+
+    primMST(graph, 0);
+
     return 0;
 }
