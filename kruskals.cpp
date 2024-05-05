@@ -1,36 +1,78 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+
 using namespace std;
 
 struct Edge {
     int src, dest, weight;
 };
 
-vector<Edge> kruskalMST(vector<Edge> edges, int V) {
-    sort(edges.begin(), edges.end(), [](const Edge &a, const Edge &b) {
-        return a.weight < b.weight;
-    });
-    vector<Edge> result;
-    vector<int> parent(V);
-    iota(parent.begin(), parent.end(), 0);
-    for (const Edge &edge : edges) {
-        int src = edge.src, dest = edge.dest;
-        while (parent[src] != src) src = parent[src];
-        while (parent[dest] != dest) dest = parent[dest];
-        if (src != dest) {
-            result.push_back(edge);
-            parent[src] = dest;
-        }
+class Graph {
+    int V;
+    vector<Edge> edges;
+
+public:
+    Graph(int V) : V(V) {}
+
+    void addEdge(int src, int dest, int weight) {
+        Edge edge = {src, dest, weight};
+        edges.push_back(edge);
     }
-    return result;
-}
+
+    // Find set of an element i
+    int find(vector<int>& parent, int i) {
+        if (parent[i] == -1)
+            return i;
+        return find(parent, parent[i]);
+    }
+
+    // Perform union of two sets
+    void Union(vector<int>& parent, int x, int y) {
+        int xset = find(parent, x);
+        int yset = find(parent, y);
+        parent[xset] = yset;
+    }
+
+    // Greedy search algorithm for Kruskal's Minimal Spanning Tree
+    void KruskalMST() {
+        vector<Edge> result(V - 1);
+
+        sort(edges.begin(), edges.end(), [](const Edge& a, const Edge& b) {
+            return a.weight < b.weight;
+        });
+
+        vector<int> parent(V, -1);
+
+        int e = 0; // An index variable, used for result[]
+        int i = 0; // An index variable, used for sorted edges
+        while (e < V - 1 && i < edges.size()) {
+            Edge next_edge = edges[i++];
+
+            int x = find(parent, next_edge.src);
+            int y = find(parent, next_edge.dest);
+
+            if (x != y) {
+                result[e++] = next_edge;
+                Union(parent, x, y);
+            }
+        }
+
+        cout << "Edges in the Minimal Spanning Tree:" << endl;
+        for (int j = 0; j < e; ++j)
+            cout << result[j].src << " - " << result[j].dest << " : " << result[j].weight << endl;
+    }
+};
 
 int main() {
-    vector<Edge> edges = {{0,1,10},{0,2,6},{0,3,5},{1,3,15},{2,3,4}};
-    vector<Edge> mst = kruskalMST(edges, 4);
-    for (const Edge &edge : mst) {
-        cout << edge.src << " - " << edge.dest << " : " << edge.weight << endl;
-    }
+    Graph graph(4);
+    graph.addEdge(0, 1, 10);
+    graph.addEdge(0, 2, 6);
+    graph.addEdge(0, 3, 5);
+    graph.addEdge(1, 3, 15);
+    graph.addEdge(2, 3, 4);
+
+    graph.KruskalMST();
+
     return 0;
 }
