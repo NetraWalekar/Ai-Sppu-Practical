@@ -1,35 +1,67 @@
 #include <iostream>
-#include <algorithm>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
+// Define a structure to represent a job
 struct Job {
     int id;
     int deadline;
     int profit;
+
+    Job(int id, int deadline, int profit) : id(id), deadline(deadline), profit(profit) {}
 };
 
-bool compareJobs(Job a, Job b) {
-    return (a.profit > b.profit);
+// Function to compare jobs based on their profits
+bool compareJobs(const Job& a, const Job& b) {
+    return a.profit > b.profit;
 }
 
-void jobSequencing(vector<Job>& jobs) {
-    sort(jobs.begin(), jobs.end(), compareJobs);
+// Function to find the maximum profit schedule using Greedy algorithm
+vector<int> maxProfitSchedule(const vector<Job>& jobs) {
     int maxDeadline = 0;
-    for (Job& job : jobs) {
+    for (const Job& job : jobs) {
         maxDeadline = max(maxDeadline, job.deadline);
     }
-    vector<bool> slot(maxDeadline + 1, false);
-    vector<int> result(maxDeadline + 1, -1);
+
+    vector<int> schedule(maxDeadline, -1);
+    int totalProfit = 0;
+
     for (const Job& job : jobs) {
-        for (int j = job.deadline; j > 0; j--) {
-            if (!slot[j]) {
-                slot[j] = true;
-                result[j] = job.id;
+        for (int i = job.deadline - 1; i >= 0; --i) {
+            if (schedule[i] == -1) {
+                schedule[i] = job.id;
+                totalProfit += job.profit;
                 break;
             }
         }
     }
-    cout << "Job sequence is: ";
-    for (int i = 1; i <= maxDeadline;
+
+    return schedule;
+}
+
+int main() {
+    vector<Job> jobs = {
+        {1, 2, 100},
+        {2, 1, 50},
+        {3, 2, 200},
+        {4, 1, 70},
+        {5, 3, 80}
+    };
+
+    // Sort jobs in decreasing order of profit
+    sort(jobs.begin(), jobs.end(), compareJobs);
+
+    vector<int> schedule = maxProfitSchedule(jobs);
+
+    // Print the schedule
+    cout << "Maximum Profit Schedule:\n";
+    for (int jobId : schedule) {
+        if (jobId != -1) {
+            cout << "Job " << jobId << endl;
+        }
+    }
+
+    return 0;
+}
